@@ -21,28 +21,38 @@ import java.util
 import com.netflix.kayenta.canary.results._
 import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig, CanaryJudge}
 import com.netflix.kayenta.judge.classifiers.metric._
-import com.netflix.kayenta.judge.config.NetflixJudgeConfigurationProperties
+import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, ThresholdScoreClassifier}
 import com.netflix.kayenta.judge.detectors.IQRDetector
 import com.netflix.kayenta.judge.preprocessing.Transforms
-import com.netflix.kayenta.judge.scorers.ScoringHelper
+import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
+import com.netflix.kayenta.judge.scorers.ScoringHelper
 import com.netflix.kayenta.judge.utils.MapUtils
+import com.netflix.kayenta.mannwhitney.MannWhitneyException
 import com.netflix.kayenta.metrics.MetricSetPair
 import com.typesafe.scalalogging.StrictLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
 import scala.collection.JavaConverters._
 
-case class Metric(name: String, values: Array[Double], label: String)
+import com.netflix.kayenta.judge.classifiers.score
+import com.netflix.kayenta.judge.scorers.ScoreResult
+import com.netflix.kayenta.canary.results.CanaryAnalysisResult
+import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Pass}
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import scala.collection.mutable._
+import java.io._
+// import org.saddle._
+import sys.process._
+import scala.io.Source
+import collection.mutable._
 
 @Component
-class NetflixACAJudge extends CanaryJudge with StrictLogging {
+class OpsMxACAJudge extends CanaryJudge with StrictLogging {
 
-  @Autowired
-  var netflixJudgeConfigurationProperties: NetflixJudgeConfigurationProperties = null
-
-  private final val judgeName = "NetflixACAJudge-v1.0"
+  private final val judgeName = "OpsMxACAJudge-v1.0"
 
   override def isVisible: Boolean = true
   override def getName: String = judgeName
@@ -62,7 +72,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       var writer = new PrintWriter(new File(baseDir +  metricName + "_control.csv"))
       for (x <- controlValues) {
         logger.info("OpsMx: Control -- " + x)
-        writer.write(x + "\n")  // however you want to format it
+        writer.write(x + "\n")
       }
       writer.close()
       logger.info("OpsMx: Saved Version1 data onto disk.")
