@@ -87,7 +87,8 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
     }
 
     // 2. Normalize baseline and canary data
-    val rResult = "/usr/bin/python3 /home/opsmxuser/python/normalizer.py /home/opsmxuser/python/test.csv" !
+    val exitCode = "/usr/bin/python3 /home/opsmxuser/python/normalizer.py /home/opsmxuser/python/test.csv".!
+    logger.info("### exitCode ###: " + exitCode)
 
     //Metric Classification
     val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
