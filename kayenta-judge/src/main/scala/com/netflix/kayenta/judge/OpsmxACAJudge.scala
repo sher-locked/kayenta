@@ -64,7 +64,6 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
     // 1. Save Metrics onto disk
     val metricsList = metricSetPairList.asScala.toList.map { metricPair =>
       val metricName = metricPair.getName
-      logger.info("OpsMx: Metric name is:: ${metricPair.getName}")
       val experimentValues = metricPair.getValues.get("experiment").asScala.map(_.toDouble).toArray
       val controlValues = metricPair.getValues.get("control").asScala.map(_.toDouble).toArray
       var baseDir = "/home/ubuntu/ScoringAndPCA/"
@@ -73,24 +72,42 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
       
       var writer = new PrintWriter(new File(baseDir + baselineDir + metricName + ".csv"))
       for (x <- controlValues) {
-        logger.info("OpsMx: Control -- " + x)
         writer.write(x + "\n")
       }
       writer.close()
-      logger.info("OpsMx: Saved baseline data onto disk.")
       
       writer = new PrintWriter(new File(baseDir + canaryDir + metricName + ".csv"))
       for (x <- experimentValues) {
-        logger.info("OpsMx: Experiment -- " + x)
         writer.write(x + "\n")
       }
       writer.close()
-      logger.info("OpsMx: Saved canary data onto disk.")
+
+      logger.info("OpsMx: Saved baseline & canary data onto disk.")
     }
 
     // 2. Normalize baseline and canary data
+
     val exitCode = "/home/ubuntu/miniconda3/bin/python3 /home/opsmxuser/python/normalizer.py /home/opsmxuser/python/test.csv".!
     logger.info("### exitCode ###: " + exitCode)
+
+    var baselineNormDir = "baseline_normalized/"
+    var canaryNormDir = "canary_normalized/"
+    // TODO: Point to actual directories
+    // val exitCode = "/home/ubuntu/miniconda3/bin/python3 /home/opsmxuser/python/normalizer.py /home/opsmxuser/python/test.csv".!
+
+    // 3. Call [Mannwhitney (Wilcoxson) + Quantile Distribution]
+    // TODO: Call actual code
+
+    // 4. Read Weights from flat-file
+    val groupWeights = Option(canaryConfig.getClassifier.getGroupWeights) match {
+      case Some(groups) => groups.asScala.mapValues(_.toDouble).toMap
+      case None => Map[String, Double]()
+    }
+    val groupWeightSet = groupWeights.keySet
+    groupWeightSet.foreach { keyValue =>
+      logger.info("OpsMx:: Key: " + keyValue._1 + ", Value: " + keyValue._2)
+    }
+
 
     //Metric Classification
     val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
