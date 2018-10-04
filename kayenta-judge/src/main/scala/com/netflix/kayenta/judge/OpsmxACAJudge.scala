@@ -61,7 +61,7 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
                      scoreThresholds: CanaryClassifierThresholdsConfig,
                      metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
 
-    // Save Metrics onto disk
+    // 1. Save Metrics onto disk
     val metricsList = metricSetPairList.asScala.toList.map { metricPair =>
       val metricName = metricPair.getName
       logger.info("OpsMx: Metric name is:: ${metricPair.getName}")
@@ -85,6 +85,9 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
       writer.close()
       logger.info("OpsMx: Saved Version2 data onto disk.")
     }
+
+    // 2. Normalize baseline and canary data
+    val rResult = "python3 /home/opsmxuser/python/normalizer.py /home/opsmxuser/python test.csv" !!
 
     //Metric Classification
     val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
