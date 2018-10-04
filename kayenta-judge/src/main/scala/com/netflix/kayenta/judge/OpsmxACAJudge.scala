@@ -68,22 +68,24 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
       val experimentValues = metricPair.getValues.get("experiment").asScala.map(_.toDouble).toArray
       val controlValues = metricPair.getValues.get("control").asScala.map(_.toDouble).toArray
       var baseDir = "/home/ubuntu/ScoringAndPCA/"
+      var baselineDir = "baseline/"
+      var canaryDir = "canary/"
       
-      var writer = new PrintWriter(new File(baseDir +  metricName + "_control.csv"))
+      var writer = new PrintWriter(new File(baseDir + baselineDir + metricName + ".csv"))
       for (x <- controlValues) {
         logger.info("OpsMx: Control -- " + x)
         writer.write(x + "\n")
       }
       writer.close()
-      logger.info("OpsMx: Saved Version1 data onto disk.")
+      logger.info("OpsMx: Saved baseline data onto disk.")
       
-      writer = new PrintWriter(new File(baseDir +  metricName + "_experiment.csv"))
+      writer = new PrintWriter(new File(baseDir + canaryDir + metricName + ".csv"))
       for (x <- experimentValues) {
         logger.info("OpsMx: Experiment -- " + x)
         writer.write(x + "\n")
       }
       writer.close()
-      logger.info("OpsMx: Saved Version2 data onto disk.")
+      logger.info("OpsMx: Saved canary data onto disk.")
     }
 
     // 2. Normalize baseline and canary data
