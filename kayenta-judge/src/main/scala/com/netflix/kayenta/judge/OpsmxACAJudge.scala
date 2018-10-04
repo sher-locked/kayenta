@@ -103,9 +103,20 @@ class OpsMxACAJudge extends CanaryJudge with StrictLogging {
       case Some(groups) => groups.asScala.mapValues(_.toDouble).toMap
       case None => Map[String, Double]()
     }
-    val groupWeightSet = groupWeights.keySet
-    groupWeightSet.foreach { keyValue =>
-      logger.info("OpsMx:: Key: " + keyValue._1 + ", Value: " + keyValue._2)
+
+    val bufferedSource = scala.io.Source.fromFile("/home/ubuntu/ScoringAndPCA/GroupWeights.txt")
+    val longtermWeights = scala.collection.mutable.Map[String, Double]()
+    for (line <- bufferedSource.getLines) {
+      val cols = line.split(",").map(_.trim)
+      longtermWeights += cols(1) -> cols(2).toDouble
+    }
+
+    for ((key, value) <- groupWeights) {
+      logger.info("OpsMx:: groupWeights:: Key: " + key + ", Value: " + value)
+    }
+
+    for ((key, value) <- longtermWeights) {
+      logger.info("OpsMx:: longtermWeights:: Key: " + key + ", Value: " + value)
     }
 
 
