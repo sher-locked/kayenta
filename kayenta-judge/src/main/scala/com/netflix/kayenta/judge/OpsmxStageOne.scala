@@ -42,7 +42,7 @@ class OpsmxStageOne extends CanaryJudge with StrictLogging {
   @Autowired
   var netflixJudgeConfigurationProperties: NetflixJudgeConfigurationProperties = null
 
-  private final val judgeName = "NetflixACAJudge-v1.0"
+  private final val judgeName = "OpsmxStageOne-v1.0"
 
   override def isVisible: Boolean = true
   override def getName: String = judgeName
@@ -134,14 +134,36 @@ class OpsmxStageOne extends CanaryJudge with StrictLogging {
       .controlMetadata(Map("stats" -> controlStats.toMap.asJava.asInstanceOf[Object]).asJava)
 
     try {
-      //val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality, nanStrategy, isCriticalMetric)
+      // Run through both classifiers and pass if either of them pass
+      val mannWhitneyClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality, nanStrategy, isCriticalMetric)
       val percentageClassification = percentageClassifier.classify(transformedControl, transformedExperiment, directionality, nanStrategy, isCriticalMetric)
+
+      val pass = (mannWhitneyClassification.classification.toString.equalsIgnoreCase("Pass") || percentageClassification.classification.toString.equalsIgnoreCase("Pass"))
+      val noData = (mannWhitneyClassification.classification.toString.equalsIgnoreCase("Nodata") && percentageClassification.classification.toString.equalsIgnoreCase("Nodata"))
+
+      var classificationStatus: String = {
+        if (pass) {
+          "Pass"
+        } else if (noData) {
+          "Nodata"
+        } else {
+          "High"
+        }
+      }
+      /*if (pass) {
+        classificationStatus = "Pass"
+      } else if (noData) {
+        classificationStatus = "Nodata"
+      } else {
+        classificationStatus = "High"
+      }*/
+
       logger.info("Opsmx: percentageClassification.classification.toString: " + percentageClassification.classification.toString)
       resultBuilder
-        .classification(percentageClassification.classification.toString)
-        .classificationReason(percentageClassification.reason.orNull)
-        .critical(percentageClassification.critical)
-        .resultMetadata(Map("ratio" -> percentageClassification.deviation.asInstanceOf[Object]).asJava)
+        .classification(classificationStatus)
+        .classificationReason(mannWhitneyClassification.reason.orNull)
+        .critical(mannWhitneyClassification.critical)
+        .resultMetadata(Map("ratio" -> mannWhitneyClassification.deviation.asInstanceOf[Object]).asJava)
         .build()
 
     } catch {
