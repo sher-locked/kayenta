@@ -34,8 +34,6 @@ import org.springframework.stereotype.Component
 
 import scala.collection.JavaConverters._
 
-// case class Metric(name: String, values: Array[Double], label: String)
-
 @Component
 class OpsmxStageOne extends CanaryJudge with StrictLogging {
 
