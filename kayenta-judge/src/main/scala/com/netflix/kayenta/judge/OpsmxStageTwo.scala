@@ -35,12 +35,12 @@ import org.springframework.stereotype.Component
 import scala.collection.JavaConverters._
 
 @Component
-class OpsmxStageOne extends CanaryJudge with StrictLogging {
+class OpsmxStageTwo extends CanaryJudge with StrictLogging {
 
   @Autowired
   var netflixJudgeConfigurationProperties: NetflixJudgeConfigurationProperties = null
 
-  private final val judgeName = "OpsmxStageOne-v1.0"
+  private final val judgeName = "OpsmxStageTwo-v1.0"
 
   override def isVisible: Boolean = true
   override def getName: String = judgeName
@@ -121,7 +121,7 @@ class OpsmxStageOne extends CanaryJudge with StrictLogging {
     // Metric Classification
     // ============================================
     val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98, effectSizeThresholds, criticalThresholds)
-    val percentageClassifier = new PercentageClassifier(upperThreshold = 100.20, lowerThreshold = (0-100.20))
+    val percentageClassifier = new PercentageClassifier(upperThreshold = 0.20, lowerThreshold = -0.20)
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)

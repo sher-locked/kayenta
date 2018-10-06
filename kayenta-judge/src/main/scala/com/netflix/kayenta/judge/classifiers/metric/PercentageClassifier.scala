@@ -22,11 +22,12 @@ import com.netflix.kayenta.judge.stats.EffectSizes
 import com.netflix.kayenta.mannwhitney.{MannWhitney, MannWhitneyParams}
 import org.apache.commons.math3.stat.StatUtils
 import com.typesafe.scalalogging.StrictLogging
+import scala.math.{abs, max}
 
 // case class ComparisonResult(classification: MetricClassificationLabel, reason: Option[String], deviation: Double)
 
-class PercentageClassifier(upperThreshold: Double=0.20,
-                            lowerThreshold: Double=0.20) extends BaseMetricClassifier {
+class PercentageClassifier(upperThreshold: Double=100.20,
+                            lowerThreshold: Double=100.20) extends BaseMetricClassifier {
 
   /**
     * Compare the experiment to the control using the Percentage Test
@@ -54,6 +55,12 @@ class PercentageClassifier(upperThreshold: Double=0.20,
     val perChange = ((experimentAverage - controlAverage)/controlAverage)
 
     //Check if the experiment is high in comparison to the control
+    val isPass = {
+      (direction == MetricDirection.Increase || direction == MetricDirection.Either) &&
+        (perChange < upperThreshold) &&
+        (perChange > (0.0d-lowerThreshold))
+    }
+
     val isHigh = {
       (direction == MetricDirection.Increase || direction == MetricDirection.Either) &&
         (perChange > upperThreshold)
@@ -62,7 +69,8 @@ class PercentageClassifier(upperThreshold: Double=0.20,
     //Check if the experiment is low in comparison to the control
     val isLow = {
       (direction == MetricDirection.Decrease || direction == MetricDirection.Either) &&
-        (perChange < (0.0d-lowerThreshold))
+        (perChange > (0.0d-lowerThreshold)) &&
+        (abs(perChange) > abs(lowerThreshold))
     }
 
     if(isHigh){
