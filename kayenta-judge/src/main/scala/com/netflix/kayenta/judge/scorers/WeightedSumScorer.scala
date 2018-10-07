@@ -19,10 +19,14 @@ package com.netflix.kayenta.judge.scorers
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
 import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Nodata, Pass}
 import org.apache.commons.math.util.MathUtils
+import com.typesafe.scalalogging.StrictLogging
+
+import java.io._
+import scala.io.Source
 
 import scala.collection.JavaConverters._
 
-class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
+class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer with StrictLogging {
 
   val NODATA_THRESHOLD = 50
 
@@ -76,6 +80,36 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
     MathUtils.round(summaryScore, 2)
   }
 
+  private def metricWeightScore(results: List[CanaryAnalysisResult]): Double ={
+
+    var metricWeights = scala.collection.mutable.Map[String, Double]()
+    val weightsSource = scala.io.Source.fromFile("/Users/anush/weights.txt")
+    for (line <- weightsSource.getLines) {
+        var cols = line.split(",").map(_.trim)
+        metricWeights += (cols(0) -> cols(1).toDouble)
+    }
+
+    var weightScore : Double = 0.0
+    var weightAggregateSum : Double = 0.0
+    var weightsSum : Double = 0.0
+    for (result <- results) {
+      // find respective metric weight in flat-file by name
+      val weight : Double = metricWeights.getOrElse(result.getName, 0.0d)
+      var passOrFail : Integer = 0
+      if (result.getClassification.toString.equalsIgnoreCase("Pass")) passOrFail = 1
+      weightAggregateSum += passOrFail * weight
+      weightsSum += weight
+      logger.info("Opsmx:: Name: " + result.getName + ", passOrFail: " + passOrFail + ", weight: " + weight)
+    }
+
+    weightScore = (weightAggregateSum/weightsSum) * 100
+    logger.info("######################################## Opsmx:: Score: " + weightScore) 
+
+    //Round the summary score to two decimal place
+    MathUtils.round(weightScore, 2)
+  }
+
+
   def criticalFailures(results: List[CanaryAnalysisResult]): List[CanaryAnalysisResult] = {
     results.filter { result => result.isCritical && !result.getClassification.equals(Pass.toString) }
   }
@@ -87,6 +121,7 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
   }
 
   override def score(results: List[CanaryAnalysisResult]): ScoreResult = {
+
     val groupScores = calculateGroupScores(results)
 
     val failures = criticalFailures(results)
@@ -100,7 +135,8 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
 
     } else {
       val summaryScore = calculateSummaryScore(groupScores)
-      ScoreResult(Some(groupScores), summaryScore, results.size , reason = None)
+      val weightScore = metricWeightScore(results)
+      ScoreResult(Some(groupScores), weightScore, results.size , reason = None)
     }
   }
 }

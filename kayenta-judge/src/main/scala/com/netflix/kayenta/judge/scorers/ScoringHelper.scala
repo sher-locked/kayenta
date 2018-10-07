@@ -21,10 +21,11 @@ import java.util
 import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig}
 import com.netflix.kayenta.canary.results.{CanaryAnalysisResult, CanaryJudgeGroupScore, CanaryJudgeResult, CanaryJudgeScore}
 import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, ThresholdScoreClassifier}
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConverters._
 
-class ScoringHelper(judgeName: String) {
+class ScoringHelper(judgeName: String) { //with StrictLogging {
 
   def score(canaryConfig: CanaryConfig,
             scoreThresholds: CanaryClassifierThresholdsConfig,
@@ -40,6 +41,11 @@ class ScoringHelper(judgeName: String) {
       case Some(groups) => groups.asScala.mapValues(_.toDouble).toMap
       case None => Map[String, Double]()
     }
+
+    /*for ((name, weight) <- groupWeights) {
+      logger.info("$$$ Opsmx:: Name: " + name)
+      logger.info("$$$ Opsmx:: Weight :" + weight)
+    }*/
 
     //Calculate the summary and group scores based on the metric results
     val weightedSumScorer = new WeightedSumScorer(groupWeights)

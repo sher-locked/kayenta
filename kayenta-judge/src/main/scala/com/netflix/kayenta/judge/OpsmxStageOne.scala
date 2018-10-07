@@ -121,7 +121,7 @@ class OpsmxStageOne extends CanaryJudge with StrictLogging {
     // Metric Classification
     // ============================================
     val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98, effectSizeThresholds, criticalThresholds)
-    val percentageClassifier = new PercentageClassifier(upperThreshold = 100.20, lowerThreshold = (0-100.20))
+    val percentageClassifier = new PercentageClassifier(upperThreshold = 0.20, lowerThreshold = (0-0.20))
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)
