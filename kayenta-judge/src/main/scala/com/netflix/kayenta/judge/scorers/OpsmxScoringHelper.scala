@@ -25,7 +25,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConverters._
 
-class ScoringHelper(judgeName: String) { 
+class OpsmxScoringHelper(judgeName: String) { 
 
   def score(canaryConfig: CanaryConfig,
             scoreThresholds: CanaryClassifierThresholdsConfig,
@@ -43,7 +43,7 @@ class ScoringHelper(judgeName: String) {
     }
 
     //Calculate the summary and group scores based on the metric results
-    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+    val weightedSumScorer = new OpsmxWeightedSumScorer(groupWeights)
     val scores = weightedSumScorer.score(metricResults)
 
     //Classify the summary score

@@ -24,7 +24,7 @@ import com.netflix.kayenta.judge.classifiers.metric._
 import com.netflix.kayenta.judge.config.NetflixJudgeConfigurationProperties
 import com.netflix.kayenta.judge.detectors.IQRDetector
 import com.netflix.kayenta.judge.preprocessing.Transforms
-import com.netflix.kayenta.judge.scorers.ScoringHelper
+import com.netflix.kayenta.judge.scorers.OpsmxScoringHelper
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.judge.utils.MapUtils
 import com.netflix.kayenta.metrics.MetricSetPair
@@ -54,7 +54,7 @@ class OpsmxStageOne extends CanaryJudge with StrictLogging {
       classifyMetric(canaryConfig, metricPair)
     }
 
-    val scoringHelper = new ScoringHelper(judgeName)
+    val scoringHelper = new OpsmxScoringHelper(judgeName)
     scoringHelper.score(canaryConfig, scoreThresholds, metricResults)
   }
 

@@ -26,7 +26,7 @@ import scala.io.Source
 
 import scala.collection.JavaConverters._
 
-class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer with StrictLogging {
+class OpsmxWeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer with StrictLogging {
 
   val NODATA_THRESHOLD = 50
 
@@ -136,8 +136,8 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer wi
 
     } else {
       val summaryScore = calculateSummaryScore(groupScores)
-      // val weightScore = metricWeightScore(results)
-      ScoreResult(Some(groupScores), summaryScore, results.size , reason = None)
+      val weightScore = metricWeightScore(results)
+      ScoreResult(Some(groupScores), weightScore, results.size , reason = None)
     }
   }
 }
