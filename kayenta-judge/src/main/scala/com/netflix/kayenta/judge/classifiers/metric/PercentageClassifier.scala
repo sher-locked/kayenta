@@ -63,14 +63,15 @@ class PercentageClassifier(upperThreshold: Double=0.20,
 
     val isHigh = {
       (direction == MetricDirection.Increase || direction == MetricDirection.Either) &&
-        (perChange > upperThreshold)
+        (abs(perChange) > abs(upperThreshold)) &&
+        (perChange > 0)
     }
 
     //Check if the experiment is low in comparison to the control
     val isLow = {
       (direction == MetricDirection.Decrease || direction == MetricDirection.Either) &&
-        (perChange < (0.0d-lowerThreshold)) &&
-        (abs(perChange) > abs(lowerThreshold))
+        (abs(perChange) > abs(lowerThreshold)) &&
+        (perChange < 0)
     }
 
     if(isHigh){
